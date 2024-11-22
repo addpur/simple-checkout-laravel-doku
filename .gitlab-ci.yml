@@ -1,0 +1,15 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - echo "$SSH_PRIVATE_KEY" | base64 -d > /tmp/private_key
+    - eval $(ssh-agent -s)
+    - chmod 600 /tmp/private_key
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$DEPLOYER_HOST" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - echo "$SSH_PASSPHRASE" | ssh-add /tmp/private_key
+    - ssh -o StrictHostKeyChecking=no -p "$DEPLOYER_PORT" -i /tmp/private_key "$DEPLOYER_USERNAME"@"$DEPLOYER_HOST" './deploy_admin_pos_prd.sh'
